@@ -2198,17 +2198,26 @@ CC_from_PGresult(QResultClass *res, StatementClass *stmt,
 }
 
 BOOL
+CC_allows_internal_savepoint(const ConnectionClass *self)
+{
+	return self &&
+		self->connInfo.drivers.for_extension_connector != FOREXTENSIONCONNECTOR_ON;
+}
+
+BOOL
 CC_uses_protocol_autosave(const ConnectionClass *self)
 {
 	return self &&
-		self->connInfo.autosave == AUTOSAVE_INTERNAL &&
-		!self->connInfo.drivers.for_extension_connector;
+		self->connInfo.drivers.for_extension_connector == FOREXTENSIONCONNECTOR_INTERNAL;
 }
 
 static int
 CC_queue_protocol_savepoint(ConnectionClass *self, BOOL rollback, const char *func)
 {
 	int ok;
+
+	if (!self || !self->pqconn)
+		return 0;
 
 	if (rollback)
 		ok = PQsendRollbackToSavepoint(self->pqconn);
@@ -2499,7 +2508,7 @@ CC_send_query_append(ConnectionClass *self, const char *query, QueryInfo *qi, UD
 		appendPQExpBuffer(&query_buf, "%s;", bgncmd);
 		discard_next_begin = TRUE;
 	}
-	else if (query_rollback && !self->connInfo.drivers.for_extension_connector)
+	else if (query_rollback && CC_allows_internal_savepoint(self))
 	{
 		if (CC_uses_protocol_autosave(self))
 		{
@@ -2540,7 +2549,7 @@ CC_send_query_append(ConnectionClass *self, const char *query, QueryInfo *qi, UD
 	{
 		appendPQExpBuffer(&query_buf, ";%s", appendq);
 	}
-	if (query_rollback && !self->connInfo.drivers.for_extension_connector
+	if (query_rollback && CC_allows_internal_savepoint(self)
 		&& !CC_uses_protocol_autosave(self))
 	{
 		appendPQExpBuffer(&query_buf, ";%s %s", rlscmd, per_query_svp);

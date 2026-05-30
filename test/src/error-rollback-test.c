@@ -232,7 +232,7 @@ main(int argc, char **argv)
 	 * through the savepoint protocol packet instead of SQL SAVEPOINT.
 	 */
 	printf("Test for autosave internal\n");
-	error_rollback_init("Autosave=internal");
+	error_rollback_init("ForExtensionConnector=2");
 
 	error_rollback_exec_success(1);
 	error_rollback_exec_success(2);

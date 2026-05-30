@@ -514,13 +514,7 @@ typedef struct GlobalValues_
 	char		commlog;
 	char		unique_index;
 	char		use_declarefetch;
-	char		for_extension_connector; /* Only for extension connector, disable savepoints in ODBC */
-
-/* Autosave mode for internal savepoint protocol optimization */
-enum {
-	AUTOSAVE_UNSPECIFIED = -1,
-	AUTOSAVE_INTERNAL = 1
-};
+	char		for_extension_connector; /* 0: SQL savepoint, 1: disable savepoints, 2: protocol savepoint */
 	char		text_as_longvarchar;
 	char		unknowns_as_longvarchar;
 	char		bools_as_char;
@@ -529,6 +523,13 @@ enum {
 	char		extra_systable_prefixes[MEDIUM_REGISTRY_LEN];
 	char		protocol[SMALL_REGISTRY_LEN];
 } GLOBAL_VALUES;
+
+/* ForExtensionConnector modes */
+enum {
+	FOREXTENSIONCONNECTOR_OFF = 0,
+	FOREXTENSIONCONNECTOR_ON = 1,
+	FOREXTENSIONCONNECTOR_INTERNAL = 2
+};
 
 void copy_globals(GLOBAL_VALUES *to, const GLOBAL_VALUES *from);
 void init_globals(GLOBAL_VALUES *glbv);
@@ -664,7 +665,6 @@ typedef struct
 	signed char	use_server_side_prepare;
 	signed char	lower_case_identifier;
 	signed char	rollback_on_error;
-	signed char	autosave;
 	signed char	force_abbrev_connstr;
 	signed char	bde_environment;
 	signed char	fake_mss;

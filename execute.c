@@ -781,7 +781,7 @@ MYLOG(DETAIL_LOG_LEVEL, " %p->accessed=%d opt=%u in_progress=%u prev=%u\n", conn
 		if (SC_is_rb_stmt(stmt))
 		{
 			if (CC_is_in_trans(conn) /* needless to issue SAVEPOINT before the 1st command */
-				&& !conn->connInfo.drivers.for_extension_connector) 
+				&& CC_allows_internal_savepoint(conn))
 			{
 				need_savep = TRUE;
 			}
@@ -876,10 +876,10 @@ CC_is_in_trans(conn), SC_is_rb_stmt(stmt), SC_is_tc_stmt(stmt));
 				goto cleanup;
 			}
 		}
-		/* ForExtensionConnector will disable all savepoints. But here raise a rollback
+		/* ForExtensionConnector=1 disables all savepoints. Otherwise raise a rollback
 		 * which will close the transaction user started.
 		 */
-		else if (!conn->connInfo.drivers.for_extension_connector)
+		else if (CC_allows_internal_savepoint(conn))
 		{
 			CC_abort(conn);
 			goto cleanup;
