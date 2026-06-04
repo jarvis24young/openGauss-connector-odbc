@@ -2890,6 +2890,7 @@ cleanup:
 		{
 			CC_set_error(self, CONNECTION_COMMUNICATION_ERROR,
 				PQerrorMessage(self->pqconn), func);
+			CC_on_abort(self, CONN_DEAD);
 		}
 		else
 		{
