@@ -683,28 +683,29 @@ MYLOG(DETAIL_LOG_LEVEL, "entering %p->external=%d\n", stmt, stmt->external);
 
 	if (CC_uses_protocol_autosave(conn))
 	{
-		ret = (conn && PG_VERSION_LT(conn, 8.0)) ? 1 : 2;
+		ret = (conn && PG_VERSION_LT(conn, 8.0)) ?
+			ROLLBACK_ON_ERROR_TRANSACTION : ROLLBACK_ON_ERROR_STATEMENT;
 	}
-	else if (!ci || ci->rollback_on_error < 0) /* default */
+	else if (!ci || ci->rollback_on_error < ROLLBACK_ON_ERROR_NONE) /* default */
 	{
 		if (conn && PG_VERSION_GE(conn, 8.0))
-			ret = 2; /* statement rollback */
+			ret = ROLLBACK_ON_ERROR_STATEMENT;
 		else
-			ret = 1; /* transaction rollback */
+			ret = ROLLBACK_ON_ERROR_TRANSACTION;
 	}
 	else
 	{
 		ret = ci->rollback_on_error;
-		if (2 == ret && PG_VERSION_LT(conn, 8.0))
-			ret = 1;
+		if (ROLLBACK_ON_ERROR_STATEMENT == ret && PG_VERSION_LT(conn, 8.0))
+			ret = ROLLBACK_ON_ERROR_TRANSACTION;
 	}
 
 	switch (ret)
 	{
-		case 1:
+		case ROLLBACK_ON_ERROR_TRANSACTION:
 			SC_start_tc_stmt(stmt);
 			break;
-		case 2:
+		case ROLLBACK_ON_ERROR_STATEMENT:
 			SC_start_rb_stmt(stmt);
 			break;
 	}

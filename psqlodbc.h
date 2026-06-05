@@ -531,6 +531,14 @@ enum {
 	FOREXTENSIONCONNECTOR_INTERNAL = 2
 };
 
+/* rollback_on_error values parsed from Protocol=7.4-x */
+enum {
+	ROLLBACK_ON_ERROR_UNSPECIFIED = -1,
+	ROLLBACK_ON_ERROR_NONE = 0,
+	ROLLBACK_ON_ERROR_TRANSACTION = 1,
+	ROLLBACK_ON_ERROR_STATEMENT = 2
+};
+
 void copy_globals(GLOBAL_VALUES *to, const GLOBAL_VALUES *from);
 void init_globals(GLOBAL_VALUES *glbv);
 void finalize_globals(GLOBAL_VALUES *glbv);
